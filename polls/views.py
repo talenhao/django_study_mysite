@@ -5,6 +5,7 @@ from django.shortcuts import render
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from django.views import generic
+from django.utils import timezone
 
 
 # def index(request):
@@ -30,7 +31,9 @@ class IndexView(generic.ListView):
 
     def get_queryset(self):
         """return the late five published questions."""
-        return Question.objects.order_by('-pub_date')[:5]
+        # return Question.objects.order_by('-pub_date')[:5]
+        # Return the last of five published questions (not including those set to be published in the future.)
+        return Question.objects.filter(pub_date__lte=timezone.now()).order_by('-pub_date')[:5]
 
 
 # def detail(request, question_id):
@@ -48,6 +51,14 @@ class DetailView(generic.DetailView):
     '''
     model = Question
     template_name = 'polls/detail.html'
+
+    def get_queryset(self):
+        """
+        Exclude any question that aren't published yet.
+        禁止在猜测url的情况下访问未发布的问题
+        :return:
+        """
+        return Question.objects.filter(pub_date__lte=timezone.now())
 
 
 def vote(request, question_id):
